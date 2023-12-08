@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "compute-lcm": "^1.1.2",
     "fs": "^0.0.1-security"
   },
   "type": "module"

@@ -8,47 +8,41 @@ let seeds = lines
   .split(' ')
   .map((x) => parseInt(x));
 
-let maps = [];
+let inputs = [];
+for (let i = 0; i < seeds.length; i += 2) {
+  inputs.push([seeds[i], seeds[i]+seeds[i+1]]);
+}
 let triplets = [];
 
 lines.shift();
 lines.shift();
 
 for (const line of lines) {
-   if (line.match(/[0-9]/g)) {
+  if (line.match(/[0-9]/g)) {
     let dest = parseInt(line.split(' ')[0]);
     let src = parseInt(line.split(' ')[1]);
     let range = parseInt(line.split(' ')[2]);
     triplets.push([src, src + range, dest]);
   } else if (triplets.length) {
-    const currTriplets = [...triplets];
-    maps.push((seed) => {
-      for (const [start, end, dest] of currTriplets) {
-        if (start <= seed && seed < end) return dest + (seed - start);
+    let nextInputs = [];
+    for (let [seedStart, seedEnd] of inputs) {
+      for (let [rangeStart, rangeEnd, dest] of triplets) {
+        if (rangeStart <= seedStart && seedEnd < rangeEnd) {
+          nextInputs.push([dest + (seedStart - rangeStart), dest + (seedEnd - rangeStart)]);
+          seedStart = seedEnd = 0;
+        } else if (rangeStart <= seedStart) {
+          nextInputs.push([dest + (seedStart - rangeStart), dest + (rangeEnd - 1 - rangeStart)]);
+          seedStart = rangeEnd;
+        } else if (rangeStart <= seedEnd) {
+          nextInputs.push([dest + seedStart, dest + (seedEnd - rangeStart)]);
+          seedEnd = rangeStart - 1;
+        }
       }
-      return seed;
-    });
+      if (seedStart > 0 && seedEnd > 0) nextInputs.push([seedStart, seedEnd]);
+    }
+    inputs = nextInputs;
     triplets = [];
   }
 }
 
-const map = (seed) => {
-  let val = seed;
-  maps.forEach(map => {
-    val = map(val);
-  });
-  return val;
-};
-
-let min = Number.MAX_VALUE;
-for (let i = 0; i < seeds.length; i += 2) {
-  let start = seeds[i];
-  let range = seeds[i + 1];
-  for (let seed = start; seed < start + range; seed++) {
-    min = Math.min(min, map(seed));
-  }
-}
-
-console.log(min);
-
-
+console.log(inputs);
